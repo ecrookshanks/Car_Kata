@@ -77,7 +77,7 @@ namespace Car_Kata
                 else
                 {
                     drivingProcessor.IncreaseSpeedTo(speed);
-                    ConsumeFuel(speed);
+                    ConsumeFuel(drivingInformationDisplay.ActualSpeed);
                 }
                 
             }
@@ -85,6 +85,7 @@ namespace Car_Kata
 
         private void ConsumeFuel(int speed)
         {
+         
             if (speed <= 0 || speed > 250)
             {
                 return;
