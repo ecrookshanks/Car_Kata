@@ -17,6 +17,12 @@ namespace Car_Kata
         void Refuel(double liters);
 
         void RunningIdle();
+
+        void BrakeBy(int speed); // car #2
+
+        void Accelerate(int speed); // car #2
+
+        void FreeWheel(); // car #2
     }
 
     public interface IEngine
@@ -51,4 +57,19 @@ namespace Car_Kata
 
         bool IsComplete { get; }
     }
+
+    public interface IDrivingInformationDisplay // car #2
+    {
+        int ActualSpeed { get; }
+    }
+
+    public interface IDrivingProcessor // car #2
+    {
+        int ActualSpeed { get; }
+
+        void IncreaseSpeedTo(int speed);
+
+        void ReduceSpeed(int speed);
+    }
+
 }

@@ -9,7 +9,7 @@ using static System.Math;
 
 namespace Car_Kata
 {
-    public class Car : ICar
+    public class Car : ICar 
     {
         private readonly double MAX_FUEL_CAPACITY = 60;
         IFuelTank tank;
@@ -25,6 +25,8 @@ namespace Car_Kata
             tank = new FuelTank(MAX_FUEL_CAPACITY, fuelLevel);
             engine = new Engine();
             display = new FuelTankDisplay(tank);
+            drivingProcessor = new DrivingProcessor();
+            drivingInformationDisplay = new DrivingInformationDisplay(drivingProcessor);
         }
         public bool EngineIsRunning => engine.IsRunning;
 
@@ -59,7 +61,91 @@ namespace Car_Kata
             }
         }
 
+        public void BrakeBy(int speed)
+        {
+            drivingProcessor.ReduceSpeed(speed);
+        }
+
+        public void Accelerate(int speed)
+        {
+            if (engine.IsRunning)
+            {
+                if ( drivingInformationDisplay.ActualSpeed > speed)
+                {
+                    drivingProcessor.ReduceSpeed(1);
+                }
+                else
+                {
+                    drivingProcessor.IncreaseSpeedTo(speed);
+                    ConsumeFuel(speed);
+                }
+                
+            }
+        }
+
+        private void ConsumeFuel(int speed)
+        {
+            if (speed <= 0 || speed > 250)
+            {
+                return;
+            }
+            else if (speed <= 60)
+            {
+                tank.Consume(0.0020);
+            }
+            else if (speed <= 100)
+            {
+                tank.Consume(0.0014);
+            }
+            else if (speed <= 140)
+            {
+                tank.Consume(0.0020);
+            }
+            else if (speed <= 200)
+            {
+                tank.Consume(0.0025);
+            }
+            else if (speed <= 250)
+            {
+                tank.Consume(0.0030);
+            }
+
+            if (tank.FillLevel == 0)
+            {
+                this.EngineStop();
+            }
+        }
+
+        public void FreeWheel()
+        {
+            if (drivingInformationDisplay.ActualSpeed > 0)
+            {
+                drivingProcessor.ReduceSpeed(1);
+            }
+            else
+            {
+                if (drivingInformationDisplay.ActualSpeed == 0)
+                {
+                    this.RunningIdle();
+                }
+            }
+            
+        }
+
         public IFuelTankDisplay fuelTankDisplay { get { return this.display; } }
+
+        public IDrivingInformationDisplay drivingInformationDisplay; // car #2  
+
+        private IDrivingProcessor drivingProcessor; // car #2
+
+        public Car(double fuelLevel, int maxAcceleration)// car #2
+        {
+            tank = new FuelTank(MAX_FUEL_CAPACITY, fuelLevel);
+            engine = new Engine();
+            display = new FuelTankDisplay(tank);
+            drivingProcessor = new DrivingProcessor(maxAcceleration);
+            drivingInformationDisplay = new DrivingInformationDisplay(drivingProcessor);
+        }
     }
 
     public class Engine : IEngine
@@ -111,7 +197,7 @@ namespace Car_Kata
 
         public void Consume(double liters)
         {
-
+            
             fillLevel -= liters;
             if (fillLevel < 0)
             {
@@ -143,5 +229,82 @@ namespace Car_Kata
         public bool IsOnReserve => tank.IsOnReserve;
 
         public bool IsComplete => tank.IsComplete;
+    }
+
+    public class DrivingInformationDisplay : IDrivingInformationDisplay // car #2
+    {
+        private IDrivingProcessor processor;
+
+        public DrivingInformationDisplay()
+        {
+            this.processor = new DrivingProcessor();
+        }
+
+
+        public DrivingInformationDisplay(IDrivingProcessor processor)
+        {
+            this.processor = processor;
+        }
+        public int ActualSpeed => processor.ActualSpeed;
+    }
+
+    public class DrivingProcessor : IDrivingProcessor // car #2
+    {
+        private int currentSpeed = 0;
+        const int MAX_SPEED = 250;
+        private const int MAX_BREAKING = 10;
+
+        public DrivingProcessor(int AccelerationRate = 10)
+        {
+            if ( AccelerationRate > 20)
+            {
+                this.AccelerationRate = 20;
+            }
+            else if (AccelerationRate < 5)
+            {
+                this.AccelerationRate = 5;
+            }
+            else
+            {
+                this.AccelerationRate = AccelerationRate;
+            }
+        }
+
+        public DrivingProcessor()
+        {
+            this.AccelerationRate = 10;
+        }
+
+        private int AccelerationRate { get; set; }
+        public int ActualSpeed { get { return currentSpeed; } private set { currentSpeed = value; } }
+
+        public void IncreaseSpeedTo(int speed)
+        {
+            if (currentSpeed < speed)
+            {
+                currentSpeed += this.AccelerationRate;
+            }
+            if (currentSpeed > speed)
+            {
+                currentSpeed = speed;
+            }
+            if (currentSpeed > MAX_SPEED)
+            {
+                currentSpeed = MAX_SPEED;
+            }
+
+        }
+
+        public void ReduceSpeed(int speed)
+        {
+            if (speed > MAX_BREAKING)
+            {
+                speed = 10;
+            }
+            if (currentSpeed > 0)
+            {
+                currentSpeed -= speed;
+            }
+        }
     }
 }
